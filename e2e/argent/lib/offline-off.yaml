@@ -1,0 +1,10 @@
+version: 1
+executionPrerequisite: Offline or failing server started by lib/offline-on.yaml. The app is on any signed-in screen.
+steps:
+  - echo: Come back online (Android) or stop the 500s (iOS, the app retries on its own backoff, at most 60 s)
+  - when: { platform: android }
+    steps:
+      - script: { path: ../scripts/offline-off-android.mjs }
+  - when: { platform: ios }
+    steps:
+      - script: { path: ../scripts/mock-errors-off.mjs }

@@ -1,0 +1,48 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - assert: { text: { in: { id: document-row-passport }, contains: Sin enviar } }
+  - echo: Open the capture screen and cancel before choosing a photo
+  - tap: { id: document-row-passport }
+  - await: { visible: { id: capture-screen } }
+  - await: { idle: true }
+  - tap: { id: capture-cancel }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - assert: { text: { in: { id: document-row-passport }, contains: Sin enviar } }
+  - script: { path: scripts/assert-docs-0.mjs }
+  - when: { platform: android }
+    steps:
+      - echo: Android. Cancel the gallery with the system back key. The capture screen is still usable
+      - tap: { id: document-row-passport }
+      - await: { visible: { id: capture-screen } }
+      - await: { idle: true }
+      - tap: { id: capture-choose-gallery }
+      - await: { visible: { text: 8:48:13 } }
+      - tool: button
+        args: { button: back }
+      - await: { visible: { id: capture-choose-gallery } }
+      - await: { idle: true }
+      - echo: Android. Choose a photo, then cancel on the preview. Nothing is queued
+      - run: lib/pick-small-photo-android.yaml
+      - tap: { id: capture-cancel }
+      - await: { visible: { id: documents-screen } }
+      - await: { idle: true }
+      - assert: { text: { in: { id: document-row-passport }, contains: Sin enviar } }
+      - script: { path: scripts/assert-docs-0.mjs }
+      - echo: Android. Back key from the capture screen returns to Documents
+      - tap: { id: document-row-passport }
+      - await: { visible: { id: capture-screen } }
+      - await: { idle: true }
+      - tool: button
+        args: { button: back }
+      - await: { visible: { id: documents-screen } }
+      - await: { idle: true }
+      - assert: { text: { in: { id: document-row-passport }, contains: Sin enviar } }
+      - script: { path: scripts/assert-docs-0.mjs }

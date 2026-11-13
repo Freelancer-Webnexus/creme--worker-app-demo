@@ -1,0 +1,16 @@
+version: 1
+executionPrerequisite: The app shows the phone screen after a sign-out. The phone field keeps the last number, +52 55 1000 0001.
+steps:
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - echo: The phone field still holds Ana's number. Continue, then type the code
+  - when: { platform: android }
+    steps:
+      - assert: { text: { in: { id: phone-input }, contains: '55 1000 0001' } }
+  - tap: { id: phone-continue }
+  - await: { visible: { id: code-screen } }
+  - wait: 600
+  - tap: { id: code-input }
+  - type: { into: { id: code-input }, text: '123456', submit: false }
+  - await: { visible: { id: home-screen } }
+  - await: { idle: true }

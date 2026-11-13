@@ -1,0 +1,10 @@
+version: 1
+executionPrerequisite: The app is installed on the target device. Wipes the app data and resets the mock. Run it between two launch steps.
+steps:
+  - echo: Baseline. Wipe app data, reset the mock, airplane mode off, font scale 1.0
+  - when: { platform: android }
+    steps:
+      - script: { path: ../scripts/reset-android.mjs }
+  - when: { platform: ios }
+    steps:
+      - script: { path: ../scripts/reset-ios.mjs }

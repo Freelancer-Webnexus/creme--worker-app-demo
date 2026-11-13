@@ -1,0 +1,27 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - assert: { visible: { id: terms-confirm } }
+  - echo: Double-tap Confirm as one gesture (raw gesture-tap with clickCount 2 at the button centre). Only one acceptance may reach the server
+  - when: { platform: android }
+    steps:
+      - tool: gesture-tap
+        args: { x: 0.5, y: 0.697, clickCount: 2 }
+  - when: { platform: ios }
+    steps:
+      - tool: gesture-tap
+        args: { x: 0.5, y: 0.804, clickCount: 2 }
+  - await: { visible: { text: Confirmaste estos términos }, timeout: 30000 }
+  - await: { idle: true }
+  - assert: { hidden: { id: terms-confirm } }
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { visible: { text: Nada por enviar en este teléfono }, timeout: 30000 }
+  - script: { path: scripts/assert-terms-1.mjs }

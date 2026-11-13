@@ -1,0 +1,10 @@
+version: 1
+executionPrerequisite: Signed in, on any tab. Android goes offline with airplane mode. The iOS simulator cannot go offline, so the mock answers every request with 500 instead.
+steps:
+  - echo: Go offline (Android airplane mode) or make the server fail (iOS)
+  - when: { platform: android }
+    steps:
+      - script: { path: ../scripts/offline-on-android.mjs }
+  - when: { platform: ios }
+    steps:
+      - script: { path: ../scripts/mock-errors-always.mjs }

@@ -1,0 +1,12 @@
+#!/bin/sh
+# House rule 1: every commit message starts with a ticket ID.
+subject=$(head -n 1 "$1")
+
+case "$subject" in
+	Merge\ *|Revert\ *) exit 0 ;;
+esac
+
+if ! printf '%s' "$subject" | grep -Eq '^MASNET-[0-9]+ '; then
+	echo "commit-msg: the message must start with a ticket ID, for example \"MASNET-12 Add retry backoff\"." >&2
+	exit 1
+fi

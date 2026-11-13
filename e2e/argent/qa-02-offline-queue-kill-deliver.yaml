@@ -1,0 +1,56 @@
+version: 1
+requires: { platform: android }
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Scenario 2. Airplane mode on. Confirm terms and photograph the passport
+  - script: { path: scripts/offline-on-android.mjs }
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Guardado en este teléfono } }
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - tap: { id: document-row-passport }
+  - await: { visible: { id: capture-screen } }
+  - await: { idle: true }
+  - run: lib/pick-small-photo-android.yaml
+  - tap: { id: capture-submit }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - echo: Both actions say saved on this phone, waiting for connection. Nothing reached the server
+  - assert: { text: { in: { id: document-row-passport }, contains: Guardado en este teléfono } }
+  - assert: { text: { in: { id: document-row-passport }, contains: Esperando conexión } }
+  - script: { path: scripts/assert-terms-0.mjs }
+  - script: { path: scripts/assert-docs-0.mjs }
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { idle: true }
+  - assert: { visible: { text: 'Confirmados en este teléfono, falta enviarlos' } }
+  - assert: { visible: { text: '2 acciones guardadas en este teléfono, esperando conexión' } }
+  - echo: Kill the app and reopen it. Both actions are still queued
+  - launch: com.joaopaulomarra.workerapp
+  - await: { visible: { id: home-screen } }
+  - await: { idle: true }
+  - assert: { visible: { text: 'Confirmados en este teléfono, falta enviarlos' } }
+  - assert: { visible: { text: '2 acciones guardadas en este teléfono, esperando conexión' } }
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - assert: { text: { in: { id: document-row-passport }, contains: Guardado en este teléfono } }
+  - echo: Airplane mode off. Both deliver once
+  - script: { path: scripts/offline-off-android.mjs }
+  - await: { text: { in: { id: document-row-passport }, contains: 'Enviado, esperando revisión' }, timeout: 40000 }
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { idle: true }
+  - await: { text: { in: { id: home-step-terms_confirmed }, contains: Hecho }, timeout: 20000 }
+  - await: { visible: { text: Nada por enviar en este teléfono }, timeout: 20000 }
+  - script: { path: scripts/assert-terms-1.mjs }
+  - script: { path: scripts/assert-docs-1.mjs }

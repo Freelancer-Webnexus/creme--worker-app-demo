@@ -1,0 +1,16 @@
+version: 1
+executionPrerequisite: The app shows the phone screen (signed out)
+steps:
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - echo: Sign in as Ana with phone +52 55 1000 0001 and code 123456
+  - tap: { id: phone-input }
+  - type: { into: { id: phone-input }, text: '+52 55 1000 0001', submit: false }
+  - tap: { id: phone-continue }
+  - await: { visible: { id: code-screen } }
+  - wait: 600
+  - tap: { id: code-input }
+  - type: { into: { id: code-input }, text: '123456', submit: false }
+  - await: { visible: { id: home-screen } }
+  - wait: 600
+  - run: dismiss-logbox.yaml

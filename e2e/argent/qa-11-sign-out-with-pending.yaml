@@ -1,0 +1,42 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Queue a terms confirmation offline, then sign out with it still pending
+  - run: lib/offline-on.yaml
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Guardado en este teléfono } }
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { idle: true }
+  - scroll-to: { target: { id: home-sign-out } }
+  - tap: { id: home-sign-out }
+  - echo: The dialog says pending work stays on the phone. No, quedarme keeps the session
+  - await: { visible: { text: '¿Quieres salir?' } }
+  - assert: { visible: { text: 'Sí, salir' } }
+  - assert: { visible: { text: 'No, quedarme' } }
+  - tap: { text: 'No, quedarme' }
+  - await: { hidden: { text: '¿Quieres salir?' } }
+  - assert: { visible: { id: home-screen } }
+  - echo: Sign out for real
+  - scroll-to: { target: { id: home-sign-out } }
+  - tap: { id: home-sign-out }
+  - await: { visible: { text: '¿Quieres salir?' } }
+  - tap: { text: 'Sí, salir' }
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - script: { path: scripts/assert-terms-0.mjs }
+  - echo: Back online while signed out. Nothing is sent without a session
+  - run: lib/offline-off.yaml
+  - wait: 6000
+  - script: { path: scripts/assert-terms-0.mjs }
+  - echo: Sign in again as the same worker. The pending action survived and is sent
+  - run: lib/sign-in-ana-again.yaml
+  - await: { text: { in: { id: home-step-terms_confirmed }, contains: Hecho }, timeout: 90000 }
+  - script: { path: scripts/assert-terms-1.mjs }

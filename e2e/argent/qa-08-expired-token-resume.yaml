@@ -1,0 +1,37 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Scenario 8. Queue an action, expire the tokens, bring the connection back
+  - run: lib/offline-on.yaml
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Guardado en este teléfono } }
+  - script: { path: scripts/mock-expire-tokens.mjs }
+  - run: lib/offline-off.yaml
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - echo: The action is kept. The indicator asks to sign in again
+  - await: { visible: { id: sync-sign-in-again }, timeout: 90000 }
+  - assert: { visible: { text: Tu sesión venció } }
+  - script: { path: scripts/assert-terms-0.mjs }
+  - tap: { id: sync-sign-in-again }
+  - echo: Sign in again. The phone number is already filled in. The queue resumes
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - assert: { visible: { text: Entra de nuevo } }
+  - tap: { id: phone-continue }
+  - await: { visible: { id: code-screen } }
+  - wait: 600
+  - tap: { id: code-input }
+  - type: { into: { id: code-input }, text: '123456', submit: false }
+  - await: { visible: { id: home-screen } }
+  - await: { idle: true }
+  - await: { visible: { text: Nada por enviar en este teléfono }, timeout: 90000 }
+  - await: { text: { in: { id: home-step-terms_confirmed }, contains: Hecho } }
+  - script: { path: scripts/assert-terms-1.mjs }

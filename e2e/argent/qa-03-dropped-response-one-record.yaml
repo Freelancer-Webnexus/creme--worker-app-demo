@@ -1,0 +1,27 @@
+version: 1
+requires: { platform: android }
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Scenario 3. The server saves the upload and drops the response. The app retries. One record
+  - script: { path: scripts/mock-drop-next.mjs }
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - tap: { id: document-row-ds160_confirmation }
+  - await: { visible: { id: capture-screen } }
+  - await: { idle: true }
+  - run: lib/pick-small-photo-android.yaml
+  - tap: { id: capture-submit }
+  - await: { visible: { id: documents-screen } }
+  - await: { text: { in: { id: document-row-ds160_confirmation }, contains: 'Enviado, esperando revisión' }, timeout: 60000 }
+  - script: { path: scripts/assert-docs-1.mjs }
+  - echo: Wait for any further retry, then check the server still holds one record
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { idle: true }
+  - await: { visible: { text: Nada por enviar en este teléfono }, timeout: 20000 }
+  - script: { path: scripts/assert-docs-1.mjs }

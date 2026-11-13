@@ -1,0 +1,36 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Scenario 6. The server answers 500. A confirmed term stays queued, with a countdown and a retry button
+  - script: { path: scripts/mock-errors-always.mjs }
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - tap: { id: terms-confirm }
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { visible: { id: sync-retry-now }, timeout: 30000 }
+  - assert: { visible: { text: Reintentar ahora } }
+  - assert: { visible: { text: Reintentando en } }
+  - echo: The UI stays responsive while the app retries. Open Documents and come back
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - script: { path: scripts/assert-terms-0.mjs }
+  - echo: Reintentar ahora tries again. The server still fails, so the countdown comes back
+  - await: { visible: { id: sync-retry-now }, timeout: 30000 }
+  - tap: { id: sync-retry-now }
+  - await: { visible: { id: sync-retry-now }, timeout: 30000 }
+  - script: { path: scripts/assert-terms-0.mjs }
+  - echo: The server recovers. The queued action is delivered once (backoff is at most 60 s)
+  - script: { path: scripts/mock-errors-off.mjs }
+  - await: { visible: { text: Nada por enviar en este teléfono }, timeout: 90000 }
+  - await: { text: { in: { id: home-step-terms_confirmed }, contains: Hecho } }
+  - script: { path: scripts/assert-terms-1.mjs }

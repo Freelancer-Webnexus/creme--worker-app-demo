@@ -1,0 +1,78 @@
+name: Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: 1.4.4
+
+jobs:
+  ticket-ids:
+    # House rule 1: branch and commits carry a ticket ID.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun scripts/check-ticket-ids.ts
+
+  static:
+    name: types, lint, compiler, secrets, domain tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      # No Bun package store cache: restoring it (209 MB) took longer than a cold install.
+      # tsc --incremental and eslint --cache-strategy content key on file contents, so a restored cache is safe.
+      - uses: actions/cache@v6
+        with:
+          path: |
+            .cache/tsc
+            .cache/eslint
+          key: static-${{ runner.os }}-${{ hashFiles('bun.lock', 'tsconfig.json', 'eslint.config.js') }}-${{ github.sha }}
+          restore-keys: static-${{ runner.os }}-${{ hashFiles('bun.lock', 'tsconfig.json', 'eslint.config.js') }}-
+      - run: bun install --frozen-lockfile
+      - run: bun run check:static
+      - run: bun run deps:check
+
+  unit:
+    name: component tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      # Jest's transform cache keys each file on its content and the babel config.
+      - uses: actions/cache@v6
+        with:
+          path: .cache/jest
+          key: jest-${{ runner.os }}-${{ hashFiles('bun.lock', 'babel.config.js') }}-${{ github.sha }}
+          restore-keys: jest-${{ runner.os }}-${{ hashFiles('bun.lock', 'babel.config.js') }}-
+      - run: bun install --frozen-lockfile
+      - run: bun run check:unit

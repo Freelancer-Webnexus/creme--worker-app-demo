@@ -1,0 +1,21 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Slow server, and the next response is dropped. Kill the app while the request is in flight
+  - script: { path: scripts/mock-latency-on.mjs }
+  - script: { path: scripts/mock-drop-next.mjs }
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Guardado en este teléfono } }
+  - launch: com.joaopaulomarra.workerapp
+  - await: { visible: { id: home-screen } }
+  - echo: The app reopened. The server is fast again. The action is retried and saved once
+  - script: { path: scripts/mock-latency-off.mjs }
+  - await: { text: { in: { id: home-step-terms_confirmed }, contains: Hecho }, timeout: 90000 }
+  - await: { visible: { text: Nada por enviar en este teléfono }, timeout: 90000 }
+  - script: { path: scripts/assert-terms-1.mjs }

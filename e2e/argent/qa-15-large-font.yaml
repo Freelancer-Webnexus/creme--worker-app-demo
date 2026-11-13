@@ -1,0 +1,41 @@
+version: 1
+requires: { platform: android }
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - script: { path: scripts/font-large-android.mjs }
+  - launch: com.joaopaulomarra.workerapp
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - echo: Font scale 2.0. Every control on every screen stays reachable and visible
+  - assert: { visible: { id: phone-input } }
+  - assert: { visible: { id: phone-continue } }
+  - assert: { visible: { id: phone-language } }
+  - run: lib/sign-in-ana.yaml
+  - scroll-to: { target: { id: home-greeting }, direction: up }
+  - assert: { visible: { id: home-greeting } }
+  - scroll-to: { target: { id: home-language-control } }
+  - assert: { visible: { id: home-language-control } }
+  - scroll-to: { target: { id: home-sign-out } }
+  - assert: { visible: { id: home-sign-out } }
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - assert: { visible: { id: document-row-passport } }
+  - scroll-to: { target: { id: document-row-signed_contract } }
+  - assert: { visible: { id: document-row-signed_contract } }
+  - scroll-to: { target: { id: document-row-passport }, direction: up }
+  - tap: { id: document-row-passport }
+  - await: { visible: { id: capture-screen } }
+  - await: { idle: true }
+  - assert: { visible: { id: capture-take-photo } }
+  - assert: { visible: { id: capture-choose-gallery } }
+  - assert: { visible: { id: capture-cancel } }
+  - tap: { id: capture-cancel }
+  - await: { visible: { id: documents-screen } }
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - scroll-to: { target: { id: terms-confirm } }
+  - assert: { visible: { id: terms-confirm } }
+  - script: { path: scripts/font-reset-android.mjs }

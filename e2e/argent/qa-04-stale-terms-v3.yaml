@@ -1,0 +1,28 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Scenario 4. Offline. Open Terms, do not confirm. Publish v3
+  - run: lib/offline-on.yaml
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - assert: { visible: { id: terms-confirm } }
+  - script: { path: scripts/mock-publish-v3.mjs }
+  - echo: Confirm the old terms (v2) while offline, then come back online
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Guardado en este teléfono } }
+  - run: lib/offline-off.yaml
+  - echo: The server refuses v2. The app shows v3 with the terms-changed banner and asks again
+  - await: { visible: { id: terms-banner }, timeout: 90000 }
+  - await: { idle: true }
+  - assert: { visible: { text: Los términos cambiaron. Lee la versión nueva y confirma otra vez } }
+  - assert: { visible: { id: terms-confirm } }
+  - script: { path: scripts/assert-terms-0.mjs }
+  - echo: Confirm v3. The server saves it once, for v3
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Confirmaste estos términos }, timeout: 30000 }
+  - await: { hidden: { id: terms-banner } }
+  - script: { path: scripts/assert-terms-v3-accepted.mjs }

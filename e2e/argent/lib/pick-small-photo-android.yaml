@@ -1,0 +1,9 @@
+version: 1
+requires: { platform: android }
+executionPrerequisite: Android. The capture screen is open (capture-screen). Picks the small blank-paper test image (photo taken at 8:48:13) from the gallery.
+steps:
+  - tap: { id: capture-choose-gallery }
+  - await: { visible: { text: 8:48:13 } }
+  - tap: { text: 8:48:13 }
+  - await: { visible: { id: capture-preview } }
+  - await: { idle: true }

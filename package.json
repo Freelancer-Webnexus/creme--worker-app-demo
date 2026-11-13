@@ -1,0 +1,83 @@
+{
+  "name": "creme-worker-app",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/entry.ts",
+  "prettier": "eslint-config-expo-magic/prettier",
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
+    "mock": "bun mock/server.ts",
+    "test": "bun run domain:check && bun run test:unit",
+    "start": "bunx expo start",
+    "android": "bunx expo run:android",
+    "ios": "bunx expo run:ios",
+    "typecheck": "bunx tsc --noEmit --incremental --tsBuildInfoFile .cache/tsc/tsconfig.tsbuildinfo",
+    "lint": "bunx eslint . --cache --cache-location .cache/eslint/.eslintcache --cache-strategy content --fix",
+    "lint:ci": "bunx eslint . --cache --cache-location .cache/eslint/.eslintcache --cache-strategy content --max-warnings 0",
+    "test:unit": "bunx jest --watchAll=false --runInBand --passWithNoTests=false --testMatch '**/*.test.tsx'",
+    "compiler:check": "bun scripts/check-react-compiler.ts",
+    "runtime:check": "bun scripts/check-runtime-flags.ts",
+    "secrets:check": "bun scripts/check-secrets.ts",
+    "domain:check": "bun test src mock --path-ignore-patterns '**/*.test.tsx'",
+    "check:static": "bun run typecheck && bun run lint:ci && bun run compiler:check && bun run runtime:check && bun run secrets:check && bun run domain:check",
+    "check:unit": "bun run test:unit",
+    "check": "bun run check:static && bun run check:unit",
+    "check:ci": "bun run check",
+    "deps:check": "bunx expo install --check"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "cacheDirectory": "<rootDir>/.cache/jest",
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/test/setup.ts"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^react-native/setup-env$": "<rootDir>/node_modules/react-native/src/setup-env.js",
+      "^react-native/react-private-interface$": "<rootDir>/node_modules/react-native/src/react-private-interface.js"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "resolver": "react-native-reanimated/jest/resolver.js"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.107.1",
+    "expo": "~58.0.25",
+    "expo-build-properties": "~58.0.12",
+    "expo-constants": "~58.0.16",
+    "expo-crypto": "~58.0.8",
+    "expo-file-system": "~58.0.13",
+    "expo-image": "~58.0.18",
+    "expo-image-manipulator": "~58.0.16",
+    "expo-image-picker": "~58.0.10",
+    "expo-linking": "~58.0.17",
+    "expo-network": "~58.0.5",
+    "expo-router": "~58.0.31",
+    "expo-splash-screen": "~58.0.14",
+    "expo-sqlite": "~58.0.17",
+    "expo-status-bar": "~58.0.5",
+    "expo-system-ui": "~58.0.7",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-gesture-handler": "~3.3.0",
+    "react-native-keyboard-controller": "1.22.7",
+    "react-native-nitro-modules": "^0.37.2",
+    "react-native-nitro-storage": "^0.17.1",
+    "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1",
+    "react-native-worklets": "0.13.0"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "^14.1.0",
+    "@types/jest": "30.0.0",
+    "@types/node": "^24.19.2",
+    "@types/react": "~19.3.0",
+    "eslint-config-expo-magic": "^5.5.0",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.14",
+    "test-renderer": "^1.3.1",
+    "typescript": "~6.0.3"
+  }
+}

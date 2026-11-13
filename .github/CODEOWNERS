@@ -1,0 +1,11 @@
+# House rule 2: every pull request needs a human reviewer, and a change to the
+# API contract also needs the backend developers.
+#
+# This solo repository has one owner. In the client's organization the second
+# block names the backend team, for example @client/backend.
+
+*                       @JoaoPauloCMarra
+
+/docs/api-contract.md   @JoaoPauloCMarra
+/mock/                  @JoaoPauloCMarra
+/src/services/api/      @JoaoPauloCMarra

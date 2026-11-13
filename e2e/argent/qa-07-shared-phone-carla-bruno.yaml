@@ -1,0 +1,82 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-shared-phone.yaml
+  - echo: Scenario 7. Choose Carla. She sees the correction reason
+  - tap: { id: worker-worker-carla }
+  - await: { visible: { id: home-screen } }
+  - await: { idle: true }
+  - assert: { text: { in: { id: home-greeting }, equals: 'Hola, Carla' } }
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - assert: { visible: { text: Hay que corregirlo } }
+  - assert: { visible: { text: 'Foto borrosa, vuelva a tomarla' } }
+  - when: { platform: android }
+    steps:
+      - echo: Carla resubmits the passport (Android only, the iOS simulator photo library is unusable)
+      - tap: { id: document-row-passport }
+      - await: { visible: { id: capture-screen } }
+      - await: { idle: true }
+      - run: lib/pick-small-photo-android.yaml
+      - tap: { id: capture-submit }
+      - await: { visible: { id: documents-screen } }
+      - await: { text: { in: { id: document-row-passport }, contains: 'Enviado, esperando revisión' }, timeout: 40000 }
+      - script: { path: scripts/assert-docs-1.mjs }
+  - echo: Carla confirms the terms while offline. The action stays queued
+  - run: lib/offline-on.yaml
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Guardado en este teléfono } }
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { idle: true }
+  - echo: Switch to Bruno. None of Carla's data or queue is visible
+  - scroll-to: { target: { id: home-switch-worker } }
+  - tap: { id: home-switch-worker }
+  - await: { visible: { id: worker-picker } }
+  - await: { idle: true }
+  - tap: { id: worker-worker-bruno }
+  - await: { visible: { id: home-screen } }
+  - await: { idle: true }
+  - scroll-to: { target: { id: home-greeting }, direction: up }
+  - assert: { text: { in: { id: home-greeting }, equals: 'Hola, Bruno' } }
+  - assert: { hidden: { text: Guardado en este teléfono } }
+  - assert: { hidden: { text: Carla } }
+  - echo: Back online while Bruno is signed in. Bruno's data loads. Carla's action must NOT be sent
+  - run: lib/offline-off.yaml
+  - swipe: down
+  - await: { visible: { text: Valle Verde Farms }, timeout: 60000 }
+  - wait: 8000
+  - assert: { hidden: { text: Guardado en este teléfono } }
+  - assert: { hidden: { text: Carla } }
+  - script: { path: scripts/assert-terms-0.mjs }
+  - await: { idle: true }
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - assert: { visible: { text: Aprobado } }
+  - assert: { hidden: { text: Hay que corregirlo } }
+  - assert: { hidden: { text: 'Foto borrosa, vuelva a tomarla' } }
+  - echo: Carla signs in again. Her queued action is sent
+  - await: { idle: true }
+  - tap: { text: Inicio }
+  - await: { visible: { id: home-greeting } }
+  - await: { idle: true }
+  - scroll-to: { target: { id: home-sign-out } }
+  - tap: { id: home-sign-out }
+  - await: { visible: { text: '¿Quieres salir?' } }
+  - tap: { text: 'Sí, salir' }
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - run: lib/sign-in-shared-phone-again.yaml
+  - tap: { id: worker-worker-carla }
+  - await: { visible: { id: home-screen } }
+  - await: { idle: true }
+  - await: { text: { in: { id: home-step-terms_confirmed }, contains: Hecho }, timeout: 90000 }
+  - script: { path: scripts/assert-terms-1.mjs }

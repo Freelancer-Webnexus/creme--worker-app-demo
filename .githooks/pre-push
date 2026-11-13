@@ -1,0 +1,17 @@
+#!/bin/sh
+# House rule 1: no direct pushes to main; branches carry a ticket ID.
+# Git feeds one line per pushed ref: <local ref> <local sha> <remote ref> <remote sha>.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+	case "$remote_ref" in
+		refs/heads/main)
+			echo "pre-push: direct pushes to main are not allowed. Open a pull request from a MASNET-<n>-<slug> branch." >&2
+			exit 1
+			;;
+		refs/heads/*)
+			if ! printf '%s' "$remote_ref" | grep -Eq '^refs/heads/MASNET-[0-9]+-[a-z0-9-]+$'; then
+				echo "pre-push: branch names must look like MASNET-<n>-<slug>. Got: $remote_ref" >&2
+				exit 1
+			fi
+			;;
+	esac
+done

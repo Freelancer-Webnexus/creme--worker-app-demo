@@ -1,0 +1,44 @@
+version: 1
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - echo: Malformed phone number. The app asks for a number with the country code
+  - tap: { id: phone-input }
+  - type: { into: { id: phone-input }, text: 'abc12', submit: false }
+  - tap: { id: phone-continue }
+  - await: { visible: { text: Revisa el número } }
+  - assert: { visible: { id: phone-screen } }
+  - assert: { hidden: { id: code-screen } }
+  - echo: Wrong one-time code for a real number. The app says the code is not right
+  - launch: com.joaopaulomarra.workerapp
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - tap: { id: phone-input }
+  - type: { into: { id: phone-input }, text: '+52 55 1000 0001', submit: false }
+  - tap: { id: phone-continue }
+  - await: { visible: { id: code-screen } }
+  - wait: 600
+  - tap: { id: code-input }
+  - type: { into: { id: code-input }, text: '000000', submit: false }
+  - await: { visible: { text: El código no es correcto } }
+  - assert: { hidden: { id: home-screen } }
+  - echo: Use a different number goes back to the phone screen
+  - tap: { id: code-change-number }
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - echo: Unknown number. The server answers like a wrong code, so the app says the same
+  - launch: com.joaopaulomarra.workerapp
+  - await: { visible: { id: phone-screen } }
+  - wait: 600
+  - tap: { id: phone-input }
+  - type: { into: { id: phone-input }, text: '+52 55 9999 0000', submit: false }
+  - tap: { id: phone-continue }
+  - await: { visible: { id: code-screen } }
+  - wait: 600
+  - tap: { id: code-input }
+  - type: { into: { id: code-input }, text: '123456', submit: false }
+  - await: { visible: { text: El código no es correcto } }
+  - assert: { hidden: { id: home-screen } }

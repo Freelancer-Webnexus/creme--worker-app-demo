@@ -1,0 +1,11 @@
+version: 1
+executionPrerequisite: Android debug build. Closes the React Native LogBox warning toast if one covers the bottom of the screen. The toast swallows taps meant for the tab bar and the language control.
+steps:
+  - when: { platform: android }
+    steps:
+      - when: { visible: { text: Looks like you have } }
+        steps:
+          - echo: A LogBox warning toast covers the bottom of the screen. Tap its close button
+          - tool: gesture-tap
+            args: { x: 0.927, y: 0.927 }
+          - await: { hidden: { text: Looks like you have } }

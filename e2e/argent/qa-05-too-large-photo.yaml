@@ -1,0 +1,54 @@
+version: 1
+requires: { platform: android }
+steps:
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/baseline.yaml
+  - launch: com.joaopaulomarra.workerapp
+  - run: lib/sign-in-ana.yaml
+  - echo: Scenario 5. The mock limit drops to 1 KB, so the next photo is too large
+  - script: { path: scripts/mock-image-limit-low.mjs }
+  - tap: { text: Documentos }
+  - await: { visible: { id: documents-screen } }
+  - await: { idle: true }
+  - tap: { id: document-row-passport }
+  - await: { visible: { id: capture-screen } }
+  - await: { idle: true }
+  - run: lib/pick-small-photo-android.yaml
+  - tap: { id: capture-submit }
+  - await: { visible: { id: documents-screen } }
+  - echo: The server answers 413. The row says in Spanish that the photo is too big
+  - await: { visible: { text: 'la foto pesa demasiado' }, timeout: 60000 }
+  - script: { path: scripts/assert-docs-0.mjs }
+  - echo: Retake works. With the normal limit back, the photo delivers
+  - script: { path: scripts/mock-image-limit-default.mjs }
+  - assert: { visible: { id: document-retake-passport } }
+  - tap: { id: document-retake-passport }
+  - await: { visible: { id: capture-screen } }
+  - await: { idle: true }
+  - run: lib/pick-small-photo-android.yaml
+  - tap: { id: capture-submit }
+  - await: { visible: { id: documents-screen } }
+  - await: { text: { in: { id: document-row-passport }, contains: 'Enviado, esperando revisión' }, timeout: 40000 }
+  - script: { path: scripts/assert-docs-1.mjs }
+  - echo: A failed upload can be dismissed. The row goes back to Sin enviar
+  - script: { path: scripts/mock-image-limit-low.mjs }
+  - tap: { id: document-row-ds160_confirmation }
+  - await: { visible: { id: capture-screen } }
+  - await: { idle: true }
+  - run: lib/pick-small-photo-android.yaml
+  - tap: { id: capture-submit }
+  - await: { visible: { id: documents-screen } }
+  - await: { visible: { id: document-dismiss-ds160_confirmation }, timeout: 60000 }
+  - assert: { visible: { text: 'la foto pesa demasiado' } }
+  - tap: { id: document-dismiss-ds160_confirmation }
+  - await: { hidden: { id: document-dismiss-ds160_confirmation } }
+  - assert: { text: { in: { id: document-row-ds160_confirmation }, contains: Sin enviar } }
+  - echo: Later actions still deliver. Confirm the terms
+  - script: { path: scripts/mock-image-limit-default.mjs }
+  - tap: { text: Términos }
+  - await: { visible: { id: terms-screen } }
+  - await: { idle: true }
+  - tap: { id: terms-confirm }
+  - await: { visible: { text: Confirmaste estos términos }, timeout: 30000 }
+  - script: { path: scripts/assert-terms-1.mjs }
+  - script: { path: scripts/assert-docs-1.mjs }
